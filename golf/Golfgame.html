@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mini Putting Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #b5e0a7;
+      font-family: Arial, sans-serif;
+    }
+
+    #game-container {
+      position: relative;
+      width: 800px;
+      height: 500px;
+      margin: 50px auto;
+      background: #6ab04c;
+      border: 5px solid #2d3436;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #ball {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: white;
+      position: absolute;
+      top: 240px;
+      left: 100px;
+      box-shadow: 0 0 5px #333;
+    }
+
+    #hole {
+      width: 40px; /* Bigger hole */
+      height: 40px; /* Bigger hole */
+      border-radius: 50%;
+      background: black;
+      position: absolute;
+      top: 240px;
+      left: 700px;
+    }
+
+    #score {
+      text-align: center;
+      font-size: 24px;
+      margin-top: 20px;
+    }
+
+    #par {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .link-button {
+      display: inline-block;
+      padding: 15px 30px;
+      background-color: #2d3436;
+      color: white;
+      text-decoration: none;
+      font-size: 20px;
+      border-radius: 5px;
+      margin-top: 40px; /* Space above the button */
+    }
+
+    .link-button:hover {
+      background-color: #636e72;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="par">Par 3</div> <!-- Display the Par value at the top -->
+  
+  <div id="game-container">
+    <div id="ball"></div>
+    <div id="hole"></div>
+  </div>
+
+  <div id="score">Strokes: 0</div>
+
+  <!-- Link to golf.html -->
+  <a href="golf.html" class="link-button">Back to Golf</a> <!-- Button linking to golf.html -->
+
+  <script>
+    const ball = document.getElementById("ball");
+    const hole = document.getElementById("hole");
+    const score = document.getElementById("score");
+    const par = document.getElementById("par");
+
+    let strokes = 0;
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let velocityX = 0;
+    let velocityY = 0;
+
+    ball.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      dragStart.x = e.clientX;
+      dragStart.y = e.clientY;
+    });
+
+    document.addEventListener("mouseup", (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+
+      const dx = dragStart.x - e.clientX;
+      const dy = dragStart.y - e.clientY;
+
+      velocityX = dx * 0.2;
+      velocityY = dy * 0.2;
+
+      strokes++;
+      score.textContent = `Strokes: ${strokes}`;
+
+      requestAnimationFrame(moveBall);
+    });
+
+    function moveBall() {
+      const container = ball.parentElement.getBoundingClientRect();
+
+      let left = ball.offsetLeft + velocityX;
+      let top = ball.offsetTop + velocityY;
+
+      // Bouncing off the left and right walls
+      if (left < 0 || left > container.width - ball.offsetWidth) {
+        velocityX = -velocityX; // Reverse X velocity for bounce
+      }
+
+      // Bouncing off the top and bottom walls
+      if (top < 0 || top > container.height - ball.offsetHeight) {
+        velocityY = -velocityY; // Reverse Y velocity for bounce
+      }
+
+      // Update ball position
+      ball.style.left = `${left}px`;
+      ball.style.top = `${top}px`;
+
+      // Friction (slow down the ball)
+      velocityX *= 0.95;
+      velocityY *= 0.95;
+
+      // Get accurate positions for collision with the hole
+      const ballRect = ball.getBoundingClientRect();
+      const holeRect = hole.getBoundingClientRect();
+
+      const ballCenterX = ballRect.left + ballRect.width / 2;
+      const ballCenterY = ballRect.top + ballRect.height / 2;
+
+      const holeCenterX = holeRect.left + holeRect.width / 2;
+      const holeCenterY = holeRect.top + holeRect.height / 2;
+
+      const holeRadius = holeRect.width / 2;
+
+      // Check if the ball passes over the hole (the ball's center must be within a distance of the hole's radius)
+      const distance = Math.hypot(ballCenterX - holeCenterX, ballCenterY - holeCenterY);
+
+      if (distance < holeRadius) {
+        let scoreMessage = "";
+
+        // Display different messages based on the number of strokes
+        if (strokes === 1) {
+          scoreMessage = "Hole-in-One! 🏌️‍♂️";
+        } else if (strokes === 2) {
+          scoreMessage = "Birdie! 🕊️";
+        } else if (strokes === 3) {
+          scoreMessage = "Par! ⛳";
+        } else if (strokes === 4) {
+          scoreMessage = "Bogey! 😬";
+        } else if (strokes === 5) {
+          scoreMessage = "Double Bogey! 😱";
+        } else {
+          scoreMessage = "Well maybe golf isn't for you 😅";
+        }
+
+        alert(scoreMessage); // Show the final score message
+
+        // Reset for next round
+        strokes = 0;
+        score.textContent = `Strokes: ${strokes}`;
+        ball.style.left = "100px";
+        ball.style.top = "240px";
+        par.textContent = "Par 3"; // Keep Par 3 displayed
+        return;
+      }
+
+      // Keep moving if speed is significant
+      if (Math.abs(velocityX) > 0.2 || Math.abs(velocityY) > 0.2) {
+        requestAnimationFrame(moveBall);
+      }
+    }
+  </script>
+</body>
+</html>
+
+
+
+
